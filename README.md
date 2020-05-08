@@ -1,1 +1,1 @@
-Basic CRUD Blazor Server application for creating workout plans (training programs) with simple UI.
+Basic CRUD Blazor Server application for creating training programs with simple UI.

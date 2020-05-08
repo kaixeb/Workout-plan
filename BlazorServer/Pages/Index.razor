@@ -1,0 +1,334 @@
+﻿@page "/"
+@using BlazorServer.Data;
+@inject TrainingProgramService TpService
+
+<h1>Training Programs</h1>
+
+<style>
+    .demo-mat-card {                                        
+        display:inline-block;        
+        border-radius: 0.5rem;
+        max-width: 400px;
+        background-color: #d7ccc8;
+        color: #55822b;
+        margin-right: 30px;
+        margin-bottom: 30px;
+    }
+
+    .demo-mat-card-content {
+        padding: 1rem;
+    }
+
+    .training-program-name {        
+        text-align: center;
+    }
+
+    .green-color-imp {
+        color: #55822b !important;        
+    }
+
+    .training-name {
+        margin-bottom: 5px;
+        font-size: 16px;
+    }
+
+    .exercise-name {
+        margin-bottom:5px;
+    }    
+
+</style>
+
+@*Initialization components*@
+@if (trainingPrograms == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{    
+    <MatButton Class="green-color-imp" @onclick="Add">Add training program</MatButton>
+    <br />
+ 
+    @foreach (var tp in trainingPrograms)
+   {                       
+                <MatCard class="demo-mat-card mat-elevation-z18 row">    
+                    <div class="demo-mat-card-content training-program-name">
+                        <MatHeadline6>
+                            @tp.TrainingProgramName
+                        </MatHeadline6>
+                    </div>
+                    <MatCardContent>
+                        <MatBody2 class="demo-mat-card-content">
+                            @foreach (var training in tp.Trainings)
+                            {
+                            <div class="training-name">@training.TrainingName</div>
+                                @foreach (var exercise in training.Exercises)
+                                {
+                                <div class="exercise-name">@exercise.ExerciseName -- @exercise.NumberOfSets * @exercise.NumberOfRepeats <ins>@exercise.Weight</ins></div>                                    
+                                }
+                            }
+                        </MatBody2>
+                    </MatCardContent>
+
+                    <MatCardActions>
+                        <MatCardActionButtons>                            
+                                <MatButton class="green-color-imp" @onclick="(() => Delete(tp.TrainingProgramId))">Delete</MatButton>
+                                <MatButton class="green-color-imp" @onclick="(() => Update(tp.TrainingProgramId))">Edit</MatButton>
+                        </MatCardActionButtons>
+                    </MatCardActions>
+                </MatCard>                
+        
+      }
+}
+
+    @*Add/Update form*@          
+    <MatDialog Style="max-width:none" CanBeClosed="false" @bind-IsOpen="@IsAdd">
+        <MatDialogTitle>@DialogTitle</MatDialogTitle>
+        <MatDialogContent>
+            
+            <EditForm Model="@tp" OnSubmit="@Create">
+
+                <p><MatTextField @bind-Value="@tp.TrainingProgramName" Label="Name"></MatTextField></p>
+                <MatDivider></MatDivider>
+                <label>Trainings:</label>
+
+                @foreach (var tr in tp.Trainings)
+                {
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <MatTextField @bind-Value="@tr.TrainingName" Label="Training name"></MatTextField>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <a href="javascript:void(0)" class="btn btn-outline-success" @onclick="@(()=>OnTrainingDelete(tp, tr))">Remove</a>
+                        </div>
+                    </div>
+                    <MatDivider></MatDivider>
+                    <label class="form-group">Exercises:</label>
+                    @foreach (var ex in tr.Exercises)
+                    {
+                        <div class="form-row">
+                            <div class="col-md-2">
+                                <MatTextField @bind-Value="@ex.ExerciseName" Label="Name"></MatTextField>
+                            </div>
+                            <div class="col-md-auto">
+                                <label>: </label>
+                            </div>
+                            <div class="col-md-2">
+                                <MatNumericUpDownField @bind-Value="@ex.NumberOfSets" Style="width:85px" Label="Sets" DecimalPlaces="0" Minimum="1" Maximum="6"></MatNumericUpDownField>
+                            </div>
+                            <div class="col-md-auto">
+                                <label style="margin-left:8px"> X </label>
+                            </div>
+                            <div class="col-md-2">
+                                <MatNumericUpDownField @bind-Value="@ex.NumberOfRepeats" Style="width:85px" Label="Reps" DecimalPlaces="0" Minimum="1" Maximum="50"></MatNumericUpDownField>
+                            </div>
+                            <div class="col-md-2">
+                                <MatTextField @bind-Value="@ex.Weight" Style="margin-left:10px; width:85px" Label="Weight"></MatTextField>
+                            </div>
+                            <div class="col-md-auto">
+                                <a href="javascript:void(0)" class="btn btn-outline-success" style="margin-left:20px" @onclick="@(()=>OnExerciseDelete(tr, ex))">Remove</a>
+                            </div>
+                        </div>
+                        <br />
+                    }
+                    <br />
+                    <p>
+                    <a href="javascript:void(0)" class="btn btn-outline-success" @onclick="@(()=>OnExerciseAdd(tr))">Add exercise</a>
+                    </p>                    
+                    <MatDivider></MatDivider>
+                }
+                <br />
+
+                <p>                
+                <a href="javascript:void(0)" class="btn btn-outline-success" @onclick="@(()=>OnTrainingAdd(tp))">Add training</a>
+                </p>
+                <MatDivider></MatDivider>
+                <br />
+                <div class="form-row">                    
+                    <MatButton Type="Submit" Class="green-color-imp" Style="margin-right:20px">Save</MatButton>
+                    <MatButton Type="Button" Class="green-color-imp" @onclick="CloseDialog" Disabled="@CancelIsDisabled">Cancel</MatButton>
+                </div>
+            </EditForm>
+            
+        </MatDialogContent>        
+    </MatDialog>
+                    
+
+
+@*Delete form*@
+<MatDialog @bind-IsOpen="@IsDelete">
+    <MatDialogTitle>Are you sure you want to delete it?</MatDialogTitle>    
+    <MatDialogActions>
+        <MatButton Class="green-color-imp" OnClick="@Remove">Yes</MatButton>
+        <MatButton Class="green-color-imp" OnClick="@CloseDeleteDialog">No</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+
+
+        @code {
+
+            protected List<TrainingProgram> trainingPrograms;
+
+            protected TrainingProgram tp = new TrainingProgram
+            {
+                TrainingProgramName="",
+                Trainings = new List<Training>
+                {
+                    new Training
+                    {
+                        TrainingName="",
+                        Exercises=new List<Exercise>
+                        {
+                            new Exercise
+                            {
+                                ExerciseName="",
+                                NumberOfSets=1,
+                                NumberOfRepeats=1,
+                                Weight="0 kg"
+                            }
+                        }
+                    }
+                }
+            };
+
+            protected string DialogTitle { get; set; }
+            protected bool IsAdd { get; set; }
+            protected bool IsDelete { get; set; }
+            protected int CurrentTpId { get; set; }
+            protected bool CancelIsDisabled { get; set; } = false;
+
+            protected override async Task OnInitializedAsync()
+            {
+                trainingPrograms = await TpService.GetTrainingProgramsAsync();
+            }
+
+            protected override async Task OnParametersSetAsync()
+            {
+                trainingPrograms = await TpService.GetTrainingProgramsAsync();
+            }
+
+            protected async Task Update(int tpId)
+            {
+                tp = await TpService.GetTrainingProgramByIdAsync(tpId);
+                CurrentTpId = tpId;
+                IsAdd = true;
+                DialogTitle = "Edit training program";
+            }
+
+            protected void Delete(int tpId)
+            {
+                CurrentTpId = tpId;
+                IsDelete = true;
+            }
+
+            protected async Task Remove()
+            {
+                TrainingProgram tp = await TpService.GetTrainingProgramByIdAsync(CurrentTpId);
+                TpService.DeleteProgram(tp);
+                CloseDeleteDialog();
+                await OnParametersSetAsync();
+            }
+
+            protected void Add()
+            {
+                IsAdd = true;
+                DialogTitle = "Add new training program";
+            }
+
+            protected async Task Create()
+            {
+                if (CurrentTpId == 0)
+                {
+                    TpService.CreateTrainingProgram(tp);
+                }
+                else
+                {
+                    TpService.SaveTrainingProgramChanges();
+                }
+
+                CloseDialog();
+                await OnParametersSetAsync();
+            }
+
+            protected void CloseDialog()
+            {
+                tp = new TrainingProgram
+                {
+                    TrainingProgramName="",
+                    Trainings = new List<Training>
+                    {
+                        new Training
+                        {
+                            TrainingName = "",
+                            Exercises = new List<Exercise>
+                            {
+                                new Exercise
+                                {
+                                    ExerciseName="",
+                                    NumberOfSets=1,
+                                    NumberOfRepeats=1,
+                                    Weight="0 kg"
+                                }
+                            }
+                        }
+                    }
+
+                };
+                CurrentTpId = 0;
+                IsAdd = false;
+                StateHasChanged();
+            }
+
+            protected void CloseDeleteDialog()
+            {
+                CurrentTpId = 0;
+                IsDelete = false;
+                CancelIsDisabled = false;
+                StateHasChanged();
+            }
+
+            public void OnTrainingAdd(TrainingProgram tp)
+            {
+                tp.Trainings.Add(new Training
+                {
+                    TrainingName = "",
+                    Exercises = new List<Exercise>
+                    {
+                        new Exercise
+                        {
+                            ExerciseName = "",
+                            NumberOfRepeats = 1,
+                            NumberOfSets = 1,
+                            Weight = "0 kg"
+                        }
+                    }
+                });
+                CancelIsDisabled = true;
+            }
+
+            public void OnExerciseAdd(Training tr)
+            {
+                tr.Exercises.Add(new Exercise
+                {
+                    ExerciseName = "",
+                    NumberOfSets = 1,
+                    NumberOfRepeats = 1,
+                    Weight = "0 kg"
+                });
+                CancelIsDisabled = true;
+            }
+
+            public void OnTrainingDelete(TrainingProgram tp, Training tr)
+            {
+                tp.Trainings.Remove(tr);
+                CancelIsDisabled = true;
+            }
+
+            public void OnExerciseDelete(Training tr, Exercise ex)
+            {
+                tr.Exercises.Remove(ex);
+                CancelIsDisabled = true;
+            }
+
+
+        }

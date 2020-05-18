@@ -1,0 +1,91 @@
+﻿@page "/Diary"
+@*Inject JSRuntime to allow JavaScript Interop *@
+@using BlazorServer.Data;
+@using Blazored.TextEditor;
+@inject IJSRuntime JSRuntime
+@inject TrainingProgramService TpService
+
+
+<h1>Training diary</h1>
+
+<MatButton Style="color: #55822b !important" Link="/">Home</MatButton>
+<MatButton Style="margin-left:20px; color: #55822b !important" @onclick="Save">Save</MatButton>
+
+<br />
+
+<BlazoredTextEditor @ref="@QuillHtml">
+    <ToolbarContent>
+        <select class="ql-header">
+            <option selected=""></option>
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="3"></option>
+            <option value="4"></option>
+            <option value="5"></option>
+        </select>
+        <span class="ql-formats">
+            <button class="ql-bold"></button>
+            <button class="ql-italic"></button>
+            <button class="ql-underline"></button>
+            <button class="ql-strike"></button>
+        </span>
+        <span class="ql-formats">
+            <select class="ql-color"></select>
+            <select class="ql-background"></select>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-list" value="ordered"></button>
+            <button class="ql-list" value="bullet"></button>
+        </span>
+        <span class="ql-formats">
+            <button class="ql-link"></button>
+        </span>
+    </ToolbarContent>
+    <EditorContent>
+        
+    </EditorContent>
+</BlazoredTextEditor>
+<br />
+
+
+@code {
+
+    protected BlazoredTextEditor QuillHtml;
+    protected Note note;
+    protected string QuillHTMLContent;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+        bool loading = true;
+        while (loading)
+        {
+            try
+            {
+                //get first note from database and load it into the editor
+                note = await TpService.GetNoteByIdAsync(1);
+                string QuillContent = @note.Content;
+                await QuillHtml.LoadHTMLContent(QuillContent);
+                
+                loading = false;
+            }
+            catch (Exception)
+            {
+                await Task.Delay(10);
+                loading = true;
+            }
+        }
+
+    }
+    
+    protected async void Save()
+    {
+        //get all the stuff that user wrote and save it to database
+        QuillHTMLContent = await QuillHtml.GetHTML();
+        note.Content = QuillHTMLContent;
+        TpService.SaveDiary(note);
+        //TODO: ADD FUNC THAT DISPLAYS THE COMPLETION OF THE SAVE
+    }
+
+}

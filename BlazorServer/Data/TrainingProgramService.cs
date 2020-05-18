@@ -27,23 +27,35 @@ namespace BlazorServer.Data
             return trainingProgram;
         }
 
+        public async ValueTask<Note> GetNoteByIdAsync(int noteId)
+        {
+            Note note = await _context.Notes.FindAsync(noteId);
+            return note;
+        }
+
         public void CreateTrainingProgram(TrainingProgram tp)
         {
             _context.Add(tp);
-            SaveTrainingProgramChanges();
+            SaveDatabase();
         }
 
         public void DeleteProgram(TrainingProgram tp)
         {
             _context.Remove(tp);
-            SaveTrainingProgramChanges();
+            SaveDatabase();
         }
 
-        public void SaveTrainingProgramChanges()
+        public void SaveDatabase()
         {
             _context.SaveChanges();
         }
-        
+
+        public void SaveDiary(Note note)
+        {
+            _context.Notes.Update(note);
+            SaveDatabase();
+        }
+
     }
 }
 

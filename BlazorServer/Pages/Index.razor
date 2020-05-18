@@ -45,7 +45,10 @@
 }
 else
 {    
-    <MatButton Class="green-color-imp" @onclick="Add">Add training program</MatButton>
+    <div class="form-row">
+        <MatButton Class="green-color-imp" @onclick="Add">Add training program</MatButton>
+        <MatButton Class="green-color-imp" Style="margin-left:20px" Link="/Diary">Training diary</MatButton>
+    </div>
     <br />
  
     @foreach (var tp in trainingPrograms)
@@ -243,7 +246,7 @@ else
                 }
                 else
                 {
-                    TpService.SaveTrainingProgramChanges();
+                    TpService.SaveDatabase();
                 }
 
                 CloseDialog();
@@ -329,6 +332,5 @@ else
                 tr.Exercises.Remove(ex);
                 CancelIsDisabled = true;
             }
-
 
         }

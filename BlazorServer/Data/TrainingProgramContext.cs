@@ -22,5 +22,6 @@ namespace BlazorServer.Data
         public DbSet<TrainingProgram> TrainingPrograms { get; set; }
         public DbSet<Training> Trainings { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<Note> Notes { get; set; }
     }
 }

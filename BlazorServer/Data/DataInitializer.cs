@@ -9,6 +9,16 @@ namespace BlazorServer.Data
         public static void Initialize(TrainingProgramContext db)
         {
             Randomizer.Seed = new Random(650931);
+                        
+            if (db.Notes.Count() == 0)
+            {   //generating only one note
+                var fakeNote = new Faker<Note>()
+                    .RuleFor(n => n.Content, f => f.Rant.Review());
+                var note = fakeNote.Generate(1);
+                //add note to database
+                db.Notes.Add(note.First());                
+                db.SaveChanges();
+            }
 
             if (db.TrainingPrograms.Count() == 0)
             {
@@ -31,7 +41,7 @@ namespace BlazorServer.Data
                 var testTrainingPrograms = new Faker<TrainingProgram>()
                     .RuleFor(tp => tp.TrainingProgramName, f => f.PickRandom(tpNames))
                     .RuleFor(tp => tp.Trainings, f => trainings.Generate(f.Random.Int(1, 7)).ToList());
-                var trainingPrograms = testTrainingPrograms.Generate(20);
+                var trainingPrograms = testTrainingPrograms.Generate(10); //generating 10 fake training programs
 
                 foreach (TrainingProgram tp in trainingPrograms)
                 {

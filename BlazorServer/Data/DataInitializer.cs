@@ -9,14 +9,14 @@ namespace BlazorServer.Data
         public static void Initialize(TrainingProgramContext db)
         {
             Randomizer.Seed = new Random(650931);
-                        
+
             if (db.Notes.Count() == 0)
             {   //generating only one note
                 var fakeNote = new Faker<Note>()
                     .RuleFor(n => n.Content, f => f.Rant.Review());
                 var note = fakeNote.Generate(1);
                 //add note to database
-                db.Notes.Add(note.First());                
+                db.Notes.Add(note.First());
                 db.SaveChanges();
             }
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Sotsera.Blazor.Toaster.Core.Models;
 
 namespace BlazorServer
 {
@@ -24,15 +25,16 @@ namespace BlazorServer
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddTransient<TrainingProgramService>();
+            services.AddToaster(config =>
+            {
+                config.PositionClass = Defaults.Classes.Position.TopRight;
+                config.PreventDuplicates = true;
+                config.NewestOnTop = false;
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            {
-                serviceScope.ServiceProvider.GetService<TrainingProgramContext>().Database.Migrate();
-            }
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

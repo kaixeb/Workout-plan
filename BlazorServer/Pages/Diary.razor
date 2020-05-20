@@ -1,10 +1,9 @@
 ﻿@page "/Diary"
-@*Inject JSRuntime to allow JavaScript Interop *@
+
 @using BlazorServer.Data;
 @using Blazored.TextEditor;
 @inject IJSRuntime JSRuntime
 @inject TrainingProgramService TpService
-
 
 <h1>Training diary</h1>
 
@@ -41,8 +40,7 @@
             <button class="ql-link"></button>
         </span>
     </ToolbarContent>
-    <EditorContent>
-        
+    <EditorContent>        
     </EditorContent>
 </BlazoredTextEditor>
 <br />
@@ -50,9 +48,12 @@
 
 @code {
 
-    protected BlazoredTextEditor QuillHtml;
-    protected Note note;
-    protected string QuillHTMLContent;
+        protected BlazoredTextEditor QuillHtml;
+        protected Note note;
+        protected string QuillHTMLContent;
+        
+        [Inject]
+        protected Sotsera.Blazor.Toaster.IToaster Toaster { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -67,7 +68,7 @@
                 note = await TpService.GetNoteByIdAsync(1);
                 string QuillContent = @note.Content;
                 await QuillHtml.LoadHTMLContent(QuillContent);
-                
+
                 loading = false;
             }
             catch (Exception)
@@ -78,14 +79,14 @@
         }
 
     }
-    
+
     protected async void Save()
     {
         //get all the stuff that user wrote and save it to database
         QuillHTMLContent = await QuillHtml.GetHTML();
         note.Content = QuillHTMLContent;
         TpService.SaveDiary(note);
-        //TODO: ADD FUNC THAT DISPLAYS THE COMPLETION OF THE SAVE
+        Toaster.Success("The diary has been updated!", "Success");
     }
 
 }
